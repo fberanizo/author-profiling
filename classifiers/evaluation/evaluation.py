@@ -3,6 +3,7 @@
 import numpy as np
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.grid_search import GridSearchCV
+from sklearn.metrics import classification_report
 
 class Evaluation:
     """Classifier evaluator."""
@@ -10,32 +11,37 @@ class Evaluation:
     def __init__(self):
         pass
 
-    def run(self, classifier, X, y):
+    def run(self, classifier, param_grid, X, y):
         """Performs classifier evaluation."""
         print 'Evaluating ' + type(classifier).__name__
-        n_folds = 3
-        score_per_fold = []
-        C_per_fold = []
+        n_folds = 5
 
-        for f, (train_index, test_index) in enumerate(StratifiedKFold(y, n_folds=n_folds)):
-            print 'Fold ' + str(f)
+        for fold, (train_index, test_index) in enumerate(StratifiedKFold(y, n_folds=n_folds)):
+            print('Fold %d' % fold)
             X_train, X_test = X[train_index], X[test_index]
             y_train, y_test = y[train_index], y[test_index]
 
-            Cs = np.logspace(-3, 4, 8) # C = [0.001, 0.01, .., 1000, 10000]
-            skf = StratifiedKFold(y_train, n_folds=n_folds)
-            clf = GridSearchCV(estimator=classifier, param_grid=dict(C=Cs), cv=skf, n_jobs=1)
-            
-            clf.fit(X_train, y_train)
-            print 'Training score: ' + str(clf.best_score_)
-            print 'Best C: ' + str(clf.best_estimator_.C)
+            scores = ['precision', 'recall']
 
-            score = clf.score(X_test, X_test)
-            print 'Test score: ' + str(score)
+            for score in scores:
+                print("# Tuning hyper-parameters for %s" % score)
+                print()
 
-            score_per_fold.append(score)
-            C_per_fold.append(clf.best_estimator_.C)
+                skf = StratifiedKFold(y_train, n_folds=n_folds)
+                clf = GridSearchCV(estimator=classifier, param_grid=param_grid, cv=skf)
+                clf.fit(X_train, y_train)
 
-        print 'Average test score: ' + str(np.mean(score_per_fold))
-
-        return np.mean(score_per_fold)
+                print("Best parameters set found on validation set:")
+                print()
+                print(clf.best_params_)
+                print()
+                print("Grid scores on validation set:")
+                print()
+                for params, mean_score, scores in clf.grid_scores_:
+                    print("%0.3f (+/-%0.03f) for %r"
+                          % (mean_score, scores.std() * 2, params))
+                print()
+                print("Scores on test set:")
+                print()
+                y_true, y_pred = y_test, clf.predict(X_test)
+                print classification_report(y_true, y_pred)

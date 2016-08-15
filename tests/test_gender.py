@@ -32,6 +32,16 @@ class GenderTestSuite(unittest.TestCase):
 
         evaluation = Evaluation()
 
+        # Evaluates K-Neighbors classifier
+        k_neighboors = KNeighborsClassifier()
+        n_neighbors = [3, 5, 11, 21, 31]
+        evaluation.run(k_neighboors, dict(n_neighbors=n_neighbors), X, y)
+
+        # Evaluates Random Forest classifier
+        random_forest = RandomForestClassifier()
+        n_estimators = [2, 3, 5, 10, 20, 40, 60]
+        evaluation.run(random_forest, dict(n_estimators=n_estimators), X, y)
+
         # Evaluates Linear SVM classifier
         linear_svm = SVC(kernel='linear')
         Cs = np.logspace(-3, 4, 8) # C = [0.001, 0.01, .., 1000, 10000]
@@ -41,16 +51,6 @@ class GenderTestSuite(unittest.TestCase):
         rbf_svm = SVC(kernel='rbf')
         Cs = np.logspace(-3, 4, 8) # C = [0.001, 0.01, .., 1000, 10000]
         evaluation.run(rbf_svm, dict(C=Cs), X, y)
-        
-        # Evaluates K-Neighbors classifier
-        k_neighboors = KNeighborsClassifier()
-        n_neighbors = [3, 5, 11, 21, 31]
-        evaluation.run(k_neighboors, dict(n_neighbors=n_neighbors), X, y)
-        
-        # Evaluates Random Forest classifier
-        random_forest = RandomForestClassifier()
-        n_estimators = [2, 3, 5, 10, 20, 40, 60]
-        evaluation.run(random_forest, dict(n_estimators=n_estimators), X, y)
 
 if __name__ == '__main__':
     unittest.main()

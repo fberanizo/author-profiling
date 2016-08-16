@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*- 
 
 import numpy as np
-from sklearn.cross_validation import StratifiedKFold
-from sklearn.grid_search import GridSearchCV
+from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import classification_report
+from prettytable import PrettyTable
 
 class Evaluation:
     """Classifier evaluator."""
@@ -14,21 +15,21 @@ class Evaluation:
     def run(self, classifier, param_grid, X, y):
         """Performs classifier evaluation."""
         print('Evaluating ' + type(classifier).__name__)
-        n_folds = 5
+        n_folds = 3
 
-        for fold, (train_index, test_index) in enumerate(StratifiedKFold(y, n_folds=n_folds)):
-            print('Fold %d' % fold)
+        skf = StratifiedKFold(n_folds=n_folds, shuffle=True)
+        for train_index, test_index in skf.split(X, y):
+            #print("TRAIN:", train_index, "TEST:", test_index)
             X_train, X_test = X[train_index], X[test_index]
             y_train, y_test = y[train_index], y[test_index]
 
-            scores = ['precision', 'recall']
+            scores = ['accuracy', 'precision', 'recall']
 
             for score in scores:
                 print("# Tuning hyper-parameters for %s" % score)
                 print("")
 
-                skf = StratifiedKFold(y_train, n_folds=n_folds)
-                clf = GridSearchCV(estimator=classifier, param_grid=param_grid, cv=skf, n_jobs=4, scoring='%s_weighted' % score)
+                clf = GridSearchCV(estimator=classifier, param_grid=param_grid, scoring=score, verbose=1, n_jobs=2)
                 clf.fit(X_train, y_train)
 
                 print("Best parameters set found on validation set:")
@@ -37,9 +38,14 @@ class Evaluation:
                 print("")
                 print("Grid scores on validation set:")
                 print("")
-                for params, mean_score, scores in clf.grid_scores_:
-                    print("%0.3f (+/-%0.03f) for %r"
-                          % (mean_score, scores.std() * 2, params))
+                results = dict(filter(lambda i:i[0] in ["params", "test_mean_score", "test_std_score"], clf.results_.iteritems()))
+                table = PrettyTable()
+                for key, val in sorted(results.iteritems()):
+                  table.add_column(key, sorted(val))
+                print table
+                #for params, mean_score, scores in clf.results_:
+                #    print("%0.3f (+/-%0.03f) for %r"
+                #          % (mean_score, scores.std() * 2, params))
                 print("")
                 print("Scores on test set:")
                 print("")

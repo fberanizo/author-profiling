@@ -32,7 +32,13 @@ class AgeTestSuite(unittest.TestCase):
         y = y[~y.apply(pd.isnull)].as_matrix()
 
         # Divides in groups of 20-, 21-25, 26-30, 31-45, 45+
-        func = np.vectorize(lambda age: 0 if age < 21 else 1 if age < 26 else 2 if age < 31 else 3 if age < 45 else 4)
+        #func = np.vectorize(lambda age: 0 if age < 21 else 1 if age < 26 else 2 if age < 31 else 3 if age < 45 else 4)
+
+        # Divides in groups of 18-24, 25-34, 35-49, 50-64, 65-xx. (PAN 2016)
+        func = np.vectorize(lambda age: 0 if age <= 24 else 1 if age <= 2 else 34 if age <= 49 else 3 if age <= 64 else 4)
+
+        # Divides in groups of 18-24, 24-xx.
+        #func = np.vectorize(lambda age: 0 if age <= 24 else 1)
         y = func(y)
 
         # Normalize features

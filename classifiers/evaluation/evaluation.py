@@ -15,7 +15,7 @@ class Evaluation:
     def run(self, classifier, param_grid, X, y):
         """Performs classifier evaluation."""
         print('Evaluating ' + type(classifier).__name__)
-        n_folds = 10
+        n_folds = 5
 
         skf = StratifiedKFold(n_folds=n_folds, shuffle=True)
         for train_index, test_index in skf.split(X, y):
@@ -23,7 +23,7 @@ class Evaluation:
             X_train, X_test = X[train_index], X[test_index]
             y_train, y_test = y[train_index], y[test_index]
 
-            scores = ['accuracy', 'precision', 'recall']
+            scores = ['f1_weighted']
 
             for score in scores:
                 print("# Tuning hyper-parameters for %s" % score)
@@ -49,4 +49,5 @@ class Evaluation:
                 print("Scores on test set (using best parameters):")
                 print("")
                 y_true, y_pred = y_test, clf.predict(X_test)
-                print classification_report(y_true, y_pred)
+                target_names =  map(str, np.unique(y_true).tolist())
+                print classification_report(y_true, y_pred, target_names=target_names)

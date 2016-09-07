@@ -19,8 +19,8 @@ class ReligiousityTestSuite(unittest.TestCase):
     """Tests religiousity classification."""
 
     def test_religiousity(self):
-        lexical_features =  pd.read_csv('input/lexical-features.csv', sep=';')
-        subjects = pd.read_excel('input/subjects.xlsx')
+        lexical_features =  pd.read_csv(os.path.abspath(os.path.join(os.path.dirname(__file__), 'input', 'lexical-features.csv')), sep=';')
+        subjects = pd.read_excel(os.path.abspath(os.path.join(os.path.dirname(__file__), 'input', 'subjects.xlsx')))
 
         X = lexical_features.ix[:, lexical_features.columns != 'seq '].sort_values(by=' ID ')
         y = subjects.loc[subjects['id'].isin(lexical_features[' ID '])].sort_values(by='id')['religiousity']

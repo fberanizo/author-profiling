@@ -15,9 +15,9 @@ class Evaluation:
     def run(self, classifier, param_grid, X, y):
         """Performs classifier evaluation."""
         print('Evaluating ' + type(classifier).__name__)
-        n_folds = 5
+        n_splits = 5
 
-        skf = StratifiedKFold(n_folds=n_folds, shuffle=True)
+        skf = StratifiedKFold(n_splits=n_splits, shuffle=True)
         for train_index, test_index in skf.split(X, y):
             #print("TRAIN:", train_index, "TEST:", test_index)
             X_train, X_test = X[train_index], X[test_index]
@@ -34,11 +34,11 @@ class Evaluation:
 
                 print("Grid scores on validation set:")
                 print("")
-                results = dict(filter(lambda i:i[0] in ["params", "test_mean_score", "test_std_score", "test_rank_score"], clf.results_.iteritems()))
+                results = dict(filter(lambda i:i[0] in ["params", "test_mean_score", "test_std_score", "test_rank_score"], clf.results_.items()))
                 table = PrettyTable()
-                for key, val in results.iteritems():
+                for key, val in results.items():
                   table.add_column(key, val)
-                print table
+                print(table)
                 
                 print("Best parameters set found on validation set:")
                 print("")
@@ -49,5 +49,5 @@ class Evaluation:
                 print("Scores on test set (using best parameters):")
                 print("")
                 y_true, y_pred = y_test, clf.predict(X_test)
-                target_names =  map(str, np.unique(y_true).tolist())
-                print classification_report(y_true, y_pred, target_names=target_names)
+                target_names = list(map(str, np.unique(y_true).tolist()))
+                print(classification_report(y_true, y_pred, target_names=target_names))

@@ -3,7 +3,7 @@
 import numpy as np
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support
 from sklearn.model_selection import train_test_split
 from prettytable import PrettyTable
 
@@ -20,7 +20,7 @@ class Evaluation:
         # Split the dataset in two equal parts
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
 
-        scores = ['f1_weighted'] # possible scores: accuracy, precision, recall, f1_weighted...
+        scores = ['f1'] if len(set(y_test)) <= 2 else ['f1_weighted']
 
         for score in scores:
             print("# Tuning hyper-parameters for %s" % score)
@@ -48,4 +48,18 @@ class Evaluation:
             print("")
             y_true, y_pred = y_test, clf.predict(X_test)
             target_names = list(map(str, np.unique(y_true).tolist()))
-            print(classification_report(y_true, y_pred, target_names=target_names))
+            print(classification_report(y_true, y_pred))
+
+            accuracy = accuracy_score(y_true, y_pred)
+
+            print("")
+            print("Accuracy on test set (using best parameters): %.2f" % accuracy)
+            print("")
+
+            average = 'binary' if len(set(y_pred)) <= 2 else 'weighted'
+            (precision, recall, f1_score, support) = precision_recall_fscore_support(y_true, y_pred, average=average)
+            print("%3.f, %3.f, %3.f, %s" % (precision, recall, f1_score, support))
+            sys.exit()
+
+            return accuracy, precision, recall, f1_score
+            

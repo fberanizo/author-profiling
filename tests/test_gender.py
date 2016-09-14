@@ -9,6 +9,7 @@ import numpy as np
 from sklearn.preprocessing import normalize
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.decomposition import PCA
+from sklearn.dummy import DummyClassifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -45,32 +46,54 @@ class GenderTestSuite(unittest.TestCase):
 
         evaluation = Evaluation()
 
+        # Most Frequent Class Classifier
+        most_frequent = DummyClassifier(strategy='most_frequent')
+        (accuracy, precision, recall, f1_score) = evaluation.run(most_frequent, dict(), X, y)
+        f = open('output/gender.mostfrequent.out', 'a')
+        f.write("%.2f,%.2f,%.2f,%.2f\n" % (accuracy, precision, recall, f1_score))
+        f.close()
+
         # Evaluates K-Neighbors classifier
         k_neighboors = KNeighborsClassifier()
         n_neighbors = [3, 5, 11, 21, 31]
-        evaluation.run(k_neighboors, dict(n_neighbors=n_neighbors), X, y)
+        (accuracy, precision, recall, f1_score) = evaluation.run(k_neighboors, dict(n_neighbors=n_neighbors), X, y)
+        f = open('output/gender.knn.out', 'a')
+        f.write("%.2f,%.2f,%.2f,%.2f\n" % (accuracy, precision, recall, f1_score))
+        f.close()
 
         # Evaluates Random Forest classifier
         random_forest = RandomForestClassifier()
         n_estimators = [2, 3, 5, 10, 20, 40, 60]
-        evaluation.run(random_forest, dict(n_estimators=n_estimators), X, y)
+        (accuracy, precision, recall, f1_score) = evaluation.run(random_forest, dict(n_estimators=n_estimators), X, y)
+        f = open('output/gender.randomforest.out', 'a')
+        f.write("%.2f,%.2f,%.2f,%.2f\n" % (accuracy, precision, recall, f1_score))
+        f.close()
 
         # Evaluates MLP classifier
         mlp = MLPClassifier()
         hidden_layer_sizes = [20, 30, 50, 75, 100, 120, 150]
         activation = ['logistic', 'tanh', 'relu']
-        evaluation.run(mlp, dict(hidden_layer_sizes=hidden_layer_sizes, activation=activation), X, y)
+        (accuracy, precision, recall, f1_score) = evaluation.run(mlp, dict(hidden_layer_sizes=hidden_layer_sizes, activation=activation), X, y)
+        f = open('output/gender.mlp.out', 'a')
+        f.write("%.2f,%.2f,%.2f,%.2f\n" % (accuracy, precision, recall, f1_score))
+        f.close()
 
         # Evaluates Linear SVM classifier
         linear_svm = SVC(kernel='linear')
         Cs = np.logspace(-3, 4, 8) # C = [0.001, 0.01, .., 1000, 10000]
-        evaluation.run(linear_svm, dict(C=Cs), X, y)
+        (accuracy, precision, recall, f1_score) = evaluation.run(linear_svm, dict(C=Cs), X, y)
+        f = open('output/gender.linsvm.out', 'a')
+        f.write("%.2f,%.2f,%.2f,%.2f\n" % (accuracy, precision, recall, f1_score))
+        f.close()
 
         # Evaluates RBF SVM classifier
         rbf_svm = SVC(kernel='rbf')
         Cs = np.logspace(-3, 4, 8) # C = [0.001, 0.01, .., 1000, 10000]
         gamma = np.logspace(-3, 4, 8) # gamma = [0.001, 0.01, .., 1000, 10000]
-        evaluation.run(rbf_svm, dict(C=Cs, gamma=gamma), X, y)
+        (accuracy, precision, recall, f1_score) = evaluation.run(rbf_svm, dict(C=Cs, gamma=gamma), X, y)
+        f = open('output/gender.rbfsvm.out', 'a')
+        f.write("%.2f,%.2f,%.2f,%.2f\n" % (accuracy, precision, recall, f1_score))
+        f.close()
 
 if __name__ == '__main__':
     unittest.main()

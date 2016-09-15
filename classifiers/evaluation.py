@@ -50,16 +50,28 @@ class Evaluation:
             target_names = list(map(str, np.unique(y_true).tolist()))
             print(classification_report(y_true, y_pred))
 
-            accuracy = accuracy_score(y_true, y_pred)
+            avg_accuracy = accuracy_score(y_true, y_pred)
 
             print("")
-            print("Accuracy on test set (using best parameters): %.2f" % accuracy)
+            print("Average accuracy on test set (using best parameters): %.2f" % avg_accuracy)
             print("")
 
+            (precision, recall, f1_score, support) = precision_recall_fscore_support(y_true, y_pred)
+            print("===================================================================")
+            print(precision)
+            print("===================================================================")
             average = 'binary' if len(set(y_pred)) <= 2 else 'weighted'
-            (precision, recall, f1_score, support) = precision_recall_fscore_support(y_true, y_pred, average=average)
-            print("%3.f, %3.f, %3.f, %s" % (precision, recall, f1_score, support))
-            sys.exit()
+            (avg_precision, avg_recall, avg_f1_score, avg_support) = precision_recall_fscore_support(y_true, y_pred, average=average)
 
-            return accuracy, precision, recall, f1_score
+            accuracy = []
+            for target in target_names:
+                accuracy.append(accuracy_score(y_true[np.where(y_true == np.int_(target))[0]], y_pred[np.where(y_true == np.int_(target))[0]]))
+
+            target_names.append('avg')
+            accuracy = np.append(accuracy, avg_accuracy)
+            precision = np.append(precision, avg_precision)
+            recall = np.append(recall, avg_recall)
+            f1_score = np.append(f1_score, avg_f1_score)
+
+            return target_names, accuracy, precision, recall, f1_score
             

@@ -33,14 +33,21 @@ class AgeTestSuite(unittest.TestCase):
         y = y[~y.apply(pd.isnull)].as_matrix()
 
         # Divides in groups of 24-, 25-34, 35-49, 50+
-        func = np.vectorize(lambda age: 0 if age <= 24 else 1 if age <= 34 else 2 if age <= 49 else 3)
+        #func = np.vectorize(lambda age: 0 if age <= 24 else 1 if age <= 34 else 2 if age <= 49 else 3)
 
         # Divides in groups of 18-24, 25-34, 35-49, 50-64, 65-xx. (PAN 2016)
-        #func = np.vectorize(lambda age: 0 if age <= 24 else 1 if age <= 2 else 34 if age <= 49 else 3 if age <= 64 else 4)
+        func = np.vectorize(lambda age: 0 if age <= 24 else 1 if age <= 34 else 2 if age <= 49 else 3)
+
+        # Divides in groups of 20-, 21-24, 25-34, 35+
+        #func = np.vectorize(lambda age: 0 if age <= 20 else 1 if age <= 24 else 2 if age <= 34 else 3)
 
         # Divides in groups of 18-24, 24-xx.
         #func = np.vectorize(lambda age: 0 if age <= 24 else 1)
         y = func(y)
+
+        #print(np.bincount(y).sum())
+        #print(np.bincount(y)/float(np.bincount(y).sum()))
+        #sys.exit()
 
         # Normalize features
         X = normalize(X, norm='l2', axis=0)
@@ -53,52 +60,50 @@ class AgeTestSuite(unittest.TestCase):
 
         # Most Frequent Class Classifier
         most_frequent = DummyClassifier(strategy='most_frequent')
-        (accuracy, precision, recall, f1_score) = evaluation.run(most_frequent, dict(), X, y)
+        (targets, accuracy, precision, recall, f1_score) = evaluation.run(most_frequent, dict(), X, y)
         f = open('output/age.mostfrequent.out', 'a')
-        f.write("%.2f,%.2f,%.2f,%.2f\n" % (accuracy, precision, recall, f1_score))
+        for t, a, p, r, f1 in zip(targets, accuracy, precision, recall, f1_score):
+            f.write("%s,%.2f,%.2f,%.2f,%.2f\n" % (t, a, p, r, f1))
         f.close()
 
         # Evaluates K-Neighbors classifier
         k_neighboors = KNeighborsClassifier()
         n_neighbors = [3, 5, 11, 21, 31]
-        (accuracy, precision, recall, f1_score) = evaluation.run(k_neighboors, dict(n_neighbors=n_neighbors), X, y)
+        (targets, accuracy, precision, recall, f1_score) = evaluation.run(k_neighboors, dict(n_neighbors=n_neighbors), X, y)
         f = open('output/age.knn.out', 'a')
-        f.write("%.2f,%.2f,%.2f,%.2f\n" % (accuracy, precision, recall, f1_score))
+        for t, a, p, r, f1 in zip(targets, accuracy, precision, recall, f1_score):
+            f.write("%s,%.2f,%.2f,%.2f,%.2f\n" % (t, a, p, r, f1))
         f.close()
 
         # Evaluates Random Forest classifier
         random_forest = RandomForestClassifier()
         n_estimators = [2, 3, 5, 10, 20, 40, 60]
-        (accuracy, precision, recall, f1_score) = evaluation.run(random_forest, dict(n_estimators=n_estimators), X, y)
+        (targets, accuracy, precision, recall, f1_score) = evaluation.run(random_forest, dict(n_estimators=n_estimators), X, y)
         f = open('output/age.randomforest.out', 'a')
-        f.write("%.2f,%.2f,%.2f,%.2f\n" % (accuracy, precision, recall, f1_score))
+        for t, a, p, r, f1 in zip(targets, accuracy, precision, recall, f1_score):
+            f.write("%s,%.2f,%.2f,%.2f,%.2f\n" % (t, a, p, r, f1))
         f.close()
 
         # Evaluates MLP classifier
         mlp = MLPClassifier()
         hidden_layer_sizes = [20, 30, 50, 75, 100, 120, 150]
         activation = ['logistic', 'tanh', 'relu']
-        (accuracy, precision, recall, f1_score) = evaluation.run(mlp, dict(hidden_layer_sizes=hidden_layer_sizes, activation=activation), X, y)
+        (targets, accuracy, precision, recall, f1_score) = evaluation.run(mlp, dict(hidden_layer_sizes=hidden_layer_sizes, activation=activation), X, y)
         f = open('output/age.mlp.out', 'a')
-        f.write("%.2f,%.2f,%.2f,%.2f\n" % (accuracy, precision, recall, f1_score))
+        for t, a, p, r, f1 in zip(targets, accuracy, precision, recall, f1_score):
+            f.write("%s,%.2f,%.2f,%.2f,%.2f\n" % (t, a, p, r, f1))
         f.close()
 
-        # Evaluates Linear SVM classifier
-        linear_svm = SVC(kernel='linear')
-        Cs = np.logspace(-3, 4, 8) # C = [0.001, 0.01, .., 1000, 10000]
-        (accuracy, precision, recall, f1_score) = evaluation.run(linear_svm, dict(C=Cs), X, y)
-        f = open('output/age.linsvm.out', 'a')
-        f.write("%.2f,%.2f,%.2f,%.2f\n" % (accuracy, precision, recall, f1_score))
-        f.close()
-
-        # Evaluates RBF SVM classifier
-        rbf_svm = SVC(kernel='rbf')
+        # Evaluates SVM
+        svm = SVC()
+        kernel = ['linear', 'rbf']
         Cs = np.logspace(-3, 4, 8) # C = [0.001, 0.01, .., 1000, 10000]
         gamma = np.logspace(-3, 4, 8) # gamma = [0.001, 0.01, .., 1000, 10000]
-        (accuracy, precision, recall, f1_score) = evaluation.run(rbf_svm, dict(C=Cs, gamma=gamma), X, y)
-        f = open('output/age.rbfsvm.out', 'a')
-        f.write("%.2f,%.2f,%.2f,%.2f\n" % (accuracy, precision, recall, f1_score))
-        f.close()   
+        (targets, accuracy, precision, recall, f1_score) = evaluation.run(svm, dict(kernel=kernel, C=Cs, gamma=gamma), X, y)
+        f = open('output/age.svm.out', 'a')
+        for t, a, p, r, f1 in zip(targets, accuracy, precision, recall, f1_score):
+            f.write("%s,%.2f,%.2f,%.2f,%.2f\n" % (t, a, p, r, f1))
+        f.close()
 
 if __name__ == '__main__':
     unittest.main()

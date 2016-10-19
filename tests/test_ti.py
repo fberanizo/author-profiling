@@ -37,9 +37,9 @@ class TITestSuite(unittest.TestCase):
         lb = LabelBinarizer()
         y = lb.fit_transform(y)[:,0]
 
-        print(np.bincount(y).sum())
-        print(np.bincount(y)/float(np.bincount(y).sum()))
-        sys.exit()
+        #print(np.bincount(y).sum())
+        #print(np.bincount(y)/float(np.bincount(y).sum()))
+        #sys.exit()
 
         # Normalize features
         X = normalize(X, norm='l2', axis=0)
@@ -48,12 +48,13 @@ class TITestSuite(unittest.TestCase):
         #pca = PCA(n_components=3)
         #X_new = pca.fit_transform(X)
 
-        evaluation = Evaluation()
+        evaluation = Evaluation(sampler='random_over_sampler')
 
         # Most Frequent Class Classifier
         most_frequent = DummyClassifier(strategy='most_frequent')
         (targets, accuracy, precision, recall, f1_score) = evaluation.run(most_frequent, dict(), X, y)
         f = open('output/ti.mostfrequent.out', 'a')
+        f.write("target_names,accuracy,precision,recall,f1_score\n")
         for t, a, p, r, f1 in zip(targets, accuracy, precision, recall, f1_score):
             f.write("%s,%.2f,%.2f,%.2f,%.2f\n" % (t, a, p, r, f1))
         f.close()
@@ -63,6 +64,7 @@ class TITestSuite(unittest.TestCase):
         n_neighbors = [3, 5, 11, 21, 31]
         (targets, accuracy, precision, recall, f1_score) = evaluation.run(k_neighboors, dict(n_neighbors=n_neighbors), X, y)
         f = open('output/ti.knn.out', 'a')
+        f.write("target_names,accuracy,precision,recall,f1_score\n")
         for t, a, p, r, f1 in zip(targets, accuracy, precision, recall, f1_score):
             f.write("%s,%.2f,%.2f,%.2f,%.2f\n" % (t, a, p, r, f1))
         f.close()
@@ -72,6 +74,7 @@ class TITestSuite(unittest.TestCase):
         n_estimators = [2, 3, 5, 10, 20, 40, 60]
         (targets, accuracy, precision, recall, f1_score) = evaluation.run(random_forest, dict(n_estimators=n_estimators), X, y)
         f = open('output/ti.randomforest.out', 'a')
+        f.write("target_names,accuracy,precision,recall,f1_score\n")
         for t, a, p, r, f1 in zip(targets, accuracy, precision, recall, f1_score):
             f.write("%s,%.2f,%.2f,%.2f,%.2f\n" % (t, a, p, r, f1))
         f.close()
@@ -80,19 +83,25 @@ class TITestSuite(unittest.TestCase):
         mlp = MLPClassifier()
         hidden_layer_sizes = [20, 30, 50, 75, 100, 120, 150]
         activation = ['logistic', 'tanh', 'relu']
-        (targets, accuracy, precision, recall, f1_score) = evaluation.run(mlp, dict(hidden_layer_sizes=hidden_layer_sizes, activation=activation), X, y)
+        solver = ['lbfgs']
+        max_iter = [1000]
+        (targets, accuracy, precision, recall, f1_score) = evaluation.run(mlp, dict(hidden_layer_sizes=hidden_layer_sizes, activation=activation, solver=solver, max_iter=max_iter, early_stopping=[False]), X, y)
         f = open('output/ti.mlp.out', 'a')
+        f.write("target_names,accuracy,precision,recall,f1_score\n")
         for t, a, p, r, f1 in zip(targets, accuracy, precision, recall, f1_score):
             f.write("%s,%.2f,%.2f,%.2f,%.2f\n" % (t, a, p, r, f1))
         f.close()
 
         # Evaluates SVM classifier
         svm = SVC()
-        kernel = ['linear', 'rbf']
+        kernel = ['linear', 'rbf', 'poly', 'sigmoid']
         Cs = np.logspace(-3, 4, 8) # C = [0.001, 0.01, .., 1000, 10000]
         gamma = np.logspace(-3, 4, 8) # gamma = [0.001, 0.01, .., 1000, 10000]
-        (targets, accuracy, precision, recall, f1_score) = evaluation.run(svm, dict(kernel=kernel, C=Cs, gamma=gamma), X, y)
+        degree = [2, 3]
+        coef0 = [0.0]
+        (targets, accuracy, precision, recall, f1_score) = evaluation.run(svm, dict(kernel=kernel, C=Cs, gamma=gamma, degree=degree, coef0=coef0), X, y)
         f = open('output/ti.svm.out', 'a')
+        f.write("target_names,accuracy,precision,recall,f1_score\n")
         for t, a, p, r, f1 in zip(targets, accuracy, precision, recall, f1_score):
             f.write("%s,%.2f,%.2f,%.2f,%.2f\n" % (t, a, p, r, f1))
         f.close()

@@ -6,7 +6,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support
 from sklearn.model_selection import train_test_split
 from imblearn.under_sampling import RandomUnderSampler
-from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import RandomOverSampler, SMOTE
 from imblearn.combine import SMOTEENN, SMOTETomek
 
 class Evaluation:
@@ -84,6 +84,8 @@ class Evaluation:
         """Returns sampler method."""
         if self.sampler == "random_under_sampler":
             return RandomUnderSampler()
+        if self.sampler == "random_over_sampler":
+            return RandomOverSampler()
         elif self.sampler == "SMOTE":
             return SMOTE()
         elif self.sampler == "SMOTEENN":

@@ -32,14 +32,17 @@ class AgeTestSuite(unittest.TestCase):
         X = X.loc[~y.apply(pd.isnull)].as_matrix()
         y = y[~y.apply(pd.isnull)].as_matrix()
 
-        # Divides in groups of 24-, 25-34, 35+
-        func = np.vectorize(lambda age: 0 if age <= 24 else 1 if age <= 34 else 2)
-
         # Divides in groups of 18-24, 25-34, 35-49, 50-64, 65-xx. (PAN 2016)
+        #func = np.vectorize(lambda age: 0 if age <= 24 else 1 if age <= 34 else 2 if age <= 49 else 3 if age <= 64 else 4)
+
+        # Divides in groups of 24-, 25-34, 35-49, 50+
         #func = np.vectorize(lambda age: 0 if age <= 24 else 1 if age <= 34 else 2 if age <= 49 else 3)
 
+        # Divides in groups of 24-, 25-34, 35+
+        #func = np.vectorize(lambda age: 0 if age <= 24 else 1 if age <= 34 else 2)
+
         # Divides in groups of 20-, 21-24, 25-29, 30+
-        #func = np.vectorize(lambda age: 0 if age <= 20 else 1 if age <= 24 else 2 if age <= 30 else 3)
+        func = np.vectorize(lambda age: 0 if age <= 20 else 1 if age <= 24 else 2 if age <= 30 else 3)
 
         # Divides in groups of 18-24, 24-xx.
         #func = np.vectorize(lambda age: 0 if age <= 24 else 1)
@@ -56,12 +59,13 @@ class AgeTestSuite(unittest.TestCase):
         #pca = PCA(n_components=3)
         #X_new = pca.fit_transform(X)
 
-        evaluation = Evaluation(sampler='random_under_sampler')
+        evaluation = Evaluation(sampler='random_over_sampler')
 
         # Most Frequent Class Classifier
         most_frequent = DummyClassifier(strategy='most_frequent')
         (targets, accuracy, precision, recall, f1_score) = evaluation.run(most_frequent, dict(), X, y)
         f = open('output/age.mostfrequent.out', 'a')
+        f.write("target_names,accuracy,precision,recall,f1_score\n")
         for t, a, p, r, f1 in zip(targets, accuracy, precision, recall, f1_score):
             f.write("%s,%.2f,%.2f,%.2f,%.2f\n" % (t, a, p, r, f1))
         f.close()
@@ -71,6 +75,7 @@ class AgeTestSuite(unittest.TestCase):
         n_neighbors = [3, 5, 11, 21, 31]
         (targets, accuracy, precision, recall, f1_score) = evaluation.run(k_neighboors, dict(n_neighbors=n_neighbors), X, y)
         f = open('output/age.knn.out', 'a')
+        f.write("target_names,accuracy,precision,recall,f1_score\n")
         for t, a, p, r, f1 in zip(targets, accuracy, precision, recall, f1_score):
             f.write("%s,%.2f,%.2f,%.2f,%.2f\n" % (t, a, p, r, f1))
         f.close()
@@ -80,6 +85,7 @@ class AgeTestSuite(unittest.TestCase):
         n_estimators = [2, 3, 5, 10, 20, 40, 60, 120]
         (targets, accuracy, precision, recall, f1_score) = evaluation.run(random_forest, dict(n_estimators=n_estimators), X, y)
         f = open('output/age.randomforest.out', 'a')
+        f.write("target_names,accuracy,precision,recall,f1_score\n")
         for t, a, p, r, f1 in zip(targets, accuracy, precision, recall, f1_score):
             f.write("%s,%.2f,%.2f,%.2f,%.2f\n" % (t, a, p, r, f1))
         f.close()
@@ -88,8 +94,11 @@ class AgeTestSuite(unittest.TestCase):
         mlp = MLPClassifier()
         hidden_layer_sizes = [20, 30, 50, 75, 100, 120, 150]
         activation = ['logistic', 'tanh', 'relu']
-        (targets, accuracy, precision, recall, f1_score) = evaluation.run(mlp, dict(hidden_layer_sizes=hidden_layer_sizes, activation=activation), X, y)
+        solver = ['lbfgs']
+        max_iter = [1000]
+        (targets, accuracy, precision, recall, f1_score) = evaluation.run(mlp, dict(hidden_layer_sizes=hidden_layer_sizes, activation=activation, solver=solver, max_iter=max_iter, early_stopping=[False]), X, y)
         f = open('output/age.mlp.out', 'a')
+        f.write("target_names,accuracy,precision,recall,f1_score\n")
         for t, a, p, r, f1 in zip(targets, accuracy, precision, recall, f1_score):
             f.write("%s,%.2f,%.2f,%.2f,%.2f\n" % (t, a, p, r, f1))
         f.close()
@@ -103,6 +112,7 @@ class AgeTestSuite(unittest.TestCase):
         coef0 = [0.0]
         (targets, accuracy, precision, recall, f1_score) = evaluation.run(svm, dict(kernel=kernel, C=Cs, gamma=gamma, degree=degree, coef0=coef0), X, y)
         f = open('output/age.svm.out', 'a')
+        f.write("target_names,accuracy,precision,recall,f1_score\n")
         for t, a, p, r, f1 in zip(targets, accuracy, precision, recall, f1_score):
             f.write("%s,%.2f,%.2f,%.2f,%.2f\n" % (t, a, p, r, f1))
         f.close()

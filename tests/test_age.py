@@ -32,20 +32,20 @@ class AgeTestSuite(unittest.TestCase):
         X = X.loc[~y.apply(pd.isnull)].as_matrix()
         y = y[~y.apply(pd.isnull)].as_matrix()
 
-        # Divides in groups of 24-, 25-34, 35-49, 50+
-        #func = np.vectorize(lambda age: 0 if age <= 24 else 1 if age <= 34 else 2 if age <= 49 else 3)
+        # Divides in groups of 24-, 25-34, 35+
+        func = np.vectorize(lambda age: 0 if age <= 24 else 1 if age <= 34 else 2)
 
         # Divides in groups of 18-24, 25-34, 35-49, 50-64, 65-xx. (PAN 2016)
-        func = np.vectorize(lambda age: 0 if age <= 24 else 1 if age <= 34 else 2 if age <= 49 else 3)
+        #func = np.vectorize(lambda age: 0 if age <= 24 else 1 if age <= 34 else 2 if age <= 49 else 3)
 
-        # Divides in groups of 20-, 21-24, 25-34, 35+
-        #func = np.vectorize(lambda age: 0 if age <= 20 else 1 if age <= 24 else 2 if age <= 34 else 3)
+        # Divides in groups of 20-, 21-24, 25-29, 30+
+        #func = np.vectorize(lambda age: 0 if age <= 20 else 1 if age <= 24 else 2 if age <= 30 else 3)
 
         # Divides in groups of 18-24, 24-xx.
         #func = np.vectorize(lambda age: 0 if age <= 24 else 1)
         y = func(y)
 
-        #print(np.bincount(y).sum())
+        #print(np.bincount(y))
         #print(np.bincount(y)/float(np.bincount(y).sum()))
         #sys.exit()
 
@@ -56,7 +56,7 @@ class AgeTestSuite(unittest.TestCase):
         #pca = PCA(n_components=3)
         #X_new = pca.fit_transform(X)
 
-        evaluation = Evaluation()
+        evaluation = Evaluation(sampler='random_under_sampler')
 
         # Most Frequent Class Classifier
         most_frequent = DummyClassifier(strategy='most_frequent')
@@ -77,7 +77,7 @@ class AgeTestSuite(unittest.TestCase):
 
         # Evaluates Random Forest classifier
         random_forest = RandomForestClassifier()
-        n_estimators = [2, 3, 5, 10, 20, 40, 60]
+        n_estimators = [2, 3, 5, 10, 20, 40, 60, 120]
         (targets, accuracy, precision, recall, f1_score) = evaluation.run(random_forest, dict(n_estimators=n_estimators), X, y)
         f = open('output/age.randomforest.out', 'a')
         for t, a, p, r, f1 in zip(targets, accuracy, precision, recall, f1_score):
@@ -96,10 +96,12 @@ class AgeTestSuite(unittest.TestCase):
 
         # Evaluates SVM
         svm = SVC()
-        kernel = ['linear', 'rbf']
+        kernel = ['linear', 'rbf', 'poly', 'sigmoid']
         Cs = np.logspace(-3, 4, 8) # C = [0.001, 0.01, .., 1000, 10000]
         gamma = np.logspace(-3, 4, 8) # gamma = [0.001, 0.01, .., 1000, 10000]
-        (targets, accuracy, precision, recall, f1_score) = evaluation.run(svm, dict(kernel=kernel, C=Cs, gamma=gamma), X, y)
+        degree = [2, 3]
+        coef0 = [0.0]
+        (targets, accuracy, precision, recall, f1_score) = evaluation.run(svm, dict(kernel=kernel, C=Cs, gamma=gamma, degree=degree, coef0=coef0), X, y)
         f = open('output/age.svm.out', 'a')
         for t, a, p, r, f1 in zip(targets, accuracy, precision, recall, f1_score):
             f.write("%s,%.2f,%.2f,%.2f,%.2f\n" % (t, a, p, r, f1))
